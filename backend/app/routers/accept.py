@@ -23,11 +23,20 @@ def list_entries(
     page: int = 1,
     size: int = 20,
 ) -> PageResult[dict]:
-    """按验收单号与状态过滤竣工验收列表；没有数据时返回空页，不报错。"""
+    """按验收单号与状态过滤竣工验收列表；页码越界时先校验，落到合法页并在 notice 里说明原因。"""
+    if size < 1:
+        raise HTTPException(status_code=400, detail="每页至少 1 条，请调大每页条数")
     if size > 200:
         raise HTTPException(status_code=400, detail="每页最多 200 条，请缩小分页范围")
-    items, total = service.list_entries(keyword=keyword, status=status, page=page, size=size)
-    return PageResult(items=items, total=total, page=page, size=size)
+    items, total, page, notice = service.list_entries(keyword=keyword, status=status, page=page, size=size)
+    return PageResult(items=items, total=total, page=page, size=size, notice=notice)
+
+
+@router.get("/export")
+def export_entries() -> dict[str, Any]:
+    """导出竣工验收清单：返回当前过滤条件下的全量数据（不含已作废单据）。"""
+    items, total, _, _ = service.list_entries(page=1, size=10000)
+    return {"module": "accept", "total": total, "items": items}
 
 
 @router.get("/{entry_id}", response_model=dict)
@@ -56,10 +65,3 @@ def run_action(entry_id: int, payload: EntryPayload) -> ActionResult:
     if entry is None:
         return ActionResult(ok=False, message=message)
     return ActionResult(ok=True, message=message, entry=entry)
-
-
-@router.get("/export")
-def export_entries() -> dict[str, Any]:
-    """导出竣工验收清单：返回当前过滤条件下的全量数据。"""
-    items, total = service.list_entries(page=1, size=10000)
-    return {"module": "accept", "total": total, "items": items}

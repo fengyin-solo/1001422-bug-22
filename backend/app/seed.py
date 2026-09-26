@@ -3,6 +3,30 @@ from __future__ import annotations
 
 from typing import Any
 
+
+def _accept_seed_rows() -> list[dict[str, Any]]:
+    """竣工验收示例数据：量足够翻好几页，并混入少量已作废单据，验证作废单不再残留在列表里。"""
+    statuses = ["待验收", "验收中", "已通过", "需返工"]
+    rows: list[dict[str, Any]] = []
+    for i in range(1, 47):
+        status = "已作废" if i % 15 == 0 else statuses[(i - 1) % len(statuses)]
+        rows.append({
+            "id": i,
+            "status": status,
+            "pending": status in ("待验收", "验收中", "需返工"),
+            "abnormal": status in ("需返工", "已作废"),
+            "验收单号": f"ACCE-{i:04d}",
+            "关联施工": f"竣工验收样例{i}",
+            "验收项目": f"竣工验收样例{i}",
+            "验收标准": f"竣工验收样例{i}",
+            "验收结论": f"竣工验收样例{i}",
+            "验收人员": f"竣工验收样例{i}",
+            "验收日期": f"2026-09-{(i - 1) % 27 + 1:02d}",
+            "验收状态": f"竣工验收样例{i}",
+        })
+    return rows
+
+
 SEED_ROWS: dict[str, list[dict[str, Any]]] = {
     "road": [{'id': 1,
   'status': '待移交',
@@ -292,42 +316,7 @@ SEED_ROWS: dict[str, list[dict[str, Any]]] = {
   '完成工程量': '养护施工样例3',
   '监理人员': '养护施工样例3',
   '施工状态': '养护施工样例3'}],
-    "accept": [{'id': 1,
-  'status': '待验收',
-  'pending': True,
-  'abnormal': False,
-  '验收单号': 'ACCE-0001',
-  '关联施工': '竣工验收样例1',
-  '验收项目': '竣工验收样例1',
-  '验收标准': '竣工验收样例1',
-  '验收结论': '竣工验收样例1',
-  '验收人员': '竣工验收样例1',
-  '验收日期': '2026-09-01',
-  '验收状态': '竣工验收样例1'},
- {'id': 2,
-  'status': '验收中',
-  'pending': True,
-  'abnormal': True,
-  '验收单号': 'ACCE-0002',
-  '关联施工': '竣工验收样例2',
-  '验收项目': '竣工验收样例2',
-  '验收标准': '竣工验收样例2',
-  '验收结论': '竣工验收样例2',
-  '验收人员': '竣工验收样例2',
-  '验收日期': '2026-09-02',
-  '验收状态': '竣工验收样例2'},
- {'id': 3,
-  'status': '已通过',
-  'pending': False,
-  'abnormal': False,
-  '验收单号': 'ACCE-0003',
-  '关联施工': '竣工验收样例3',
-  '验收项目': '竣工验收样例3',
-  '验收标准': '竣工验收样例3',
-  '验收结论': '竣工验收样例3',
-  '验收人员': '竣工验收样例3',
-  '验收日期': '2026-09-03',
-  '验收状态': '竣工验收样例3'}],
+    "accept": _accept_seed_rows(),
     "pothole": [{'id': 1,
   'status': '待安排',
   'pending': True,

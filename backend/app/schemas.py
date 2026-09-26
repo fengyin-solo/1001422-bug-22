@@ -13,6 +13,8 @@ class PageResult(BaseModel, Generic[T]):
     total: int
     page: int = 1
     size: int = 20
+    # 页码被校验钳制时给前端一句可读说明；正常翻页时为 None
+    notice: str | None = None
 
 
 class ActionResult(BaseModel):

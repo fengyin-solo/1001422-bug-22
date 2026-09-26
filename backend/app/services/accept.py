@@ -7,9 +7,10 @@ from app.store import store
 
 MODULE = "accept"
 REQUIRED_FIELDS = ["验收单号", "关联施工", "验收项目"]
-STATUS_ORDER = ["待验收", "验收中", "已通过", "需返工"]
-ACTION_RULES = {"开始验收": "验收中", "确认通过": "已通过", "下发返工": "需返工"}
-NEGATIVE_ACTIONS = []
+STATUS_ORDER = ["待验收", "验收中", "已通过", "需返工", "已作废"]
+ACTION_RULES = {"开始验收": "验收中", "确认通过": "已通过", "下发返工": "需返工", "作废验收": "已作废"}
+NEGATIVE_ACTIONS = ["作废验收"]
+VOID_STATUS = "已作废"
 
 
 class AcceptService:
@@ -20,15 +21,27 @@ class AcceptService:
         status: str | None = None,
         page: int = 1,
         size: int = 20,
-    ) -> tuple[list[dict[str, Any]], int]:
-        rows = store.rows(MODULE)
+    ) -> tuple[list[dict[str, Any]], int, int, str | None]:
+        # 作废的验收单不再留在列表里，避免翻页时反复出现、总数也对不上
+        rows = [row for row in store.rows(MODULE) if row.get("status") != VOID_STATUS]
         if keyword:
             rows = [row for row in rows if keyword in str(row.get("验收单号", ""))]
         if status:
             rows = [row for row in rows if row.get("status") == status]
         total = len(rows)
-        start = max(page - 1, 0) * size
-        return rows[start:start + size], total
+        page, notice = self._clamp_page(page, size, total)
+        start = (page - 1) * size
+        return rows[start:start + size], total, page, notice
+
+    @staticmethod
+    def _clamp_page(page: int, size: int, total: int) -> tuple[int, str | None]:
+        """页码先校验再落页：越过哪一头就在提示里讲清哪一头不合法。"""
+        if page < 1:
+            return 1, f"页码 {page} 不合法：小于第 1 页，已回到第 1 页"
+        max_page = max((total + size - 1) // size, 1)
+        if page > max_page:
+            return max_page, f"页码 {page} 不合法：超出最后一页，共 {max_page} 页，已落到第 {max_page} 页"
+        return page, None
 
     def get_entry(self, entry_id: int) -> dict[str, Any] | None:
         return store.find(MODULE, entry_id)
