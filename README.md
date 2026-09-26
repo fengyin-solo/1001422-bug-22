@@ -72,5 +72,5 @@ npm run dev
 
 - 每个模块的前端页面在 `frontend/src/views/<模块>/index.vue`，后端接口在
   `backend/app/routers/<模块>.py`，业务规则在 `backend/app/services/<模块>.py`。
-- 列表接口统一返回 `{ items, total, page, size }`，动作接口统一返回 `{ ok, message }`。
+- 列表接口统一返回 `{ items, total, page, size }`，模块可按需补充 `pages`、`notice`、`stats` 等分页信息；动作接口统一返回 `{ ok, message }`。
 - 状态流转只允许在 `app/services` 里改，路由层不做业务判断。

@@ -13,6 +13,10 @@ class PageResult(BaseModel, Generic[T]):
     total: int
     page: int = 1
     size: int = 20
+    # 以下字段按需返回：pages 总页数、notice 分页校验说明、stats 与列表同口径的状态统计。
+    pages: int | None = None
+    notice: str | None = None
+    stats: dict[str, int] | None = None
 
 
 class ActionResult(BaseModel):

@@ -653,3 +653,26 @@ SEED_ROWS: dict[str, list[dict[str, Any]]] = {
   '归档日期': '2026-09-03',
   '档案状态': '设施档案样例3'}]
 }
+
+
+# 竣工验收：把示例数据补足到 48 条。翻页、调整每页条数、最后一页是否重复或漏单，
+# 都需要多页数据才能核对；每 12 条埋一条已作废（abnormal）单据，覆盖作废单的展示口径。
+_ACCEPT_STATUS_CYCLE = ["待验收", "验收中", "已通过", "需返工"]
+for _seq in range(4, 49):
+    _status = _ACCEPT_STATUS_CYCLE[(_seq - 1) % len(_ACCEPT_STATUS_CYCLE)]
+    _voided = _seq % 12 == 0
+    SEED_ROWS["accept"].append({
+        "id": _seq,
+        "status": _status,
+        "pending": _status in ("待验收", "验收中") and not _voided,
+        "abnormal": _voided,
+        "验收单号": f"ACCE-{_seq:04d}",
+        "关联施工": f"竣工验收样例{_seq}",
+        "验收项目": f"竣工验收样例{_seq}",
+        "验收标准": f"竣工验收样例{_seq}",
+        "验收结论": f"竣工验收样例{_seq}",
+        "验收人员": f"竣工验收样例{_seq}",
+        "验收日期": f"2026-09-{(_seq % 27) + 1:02d}",
+        "验收状态": _status,
+    })
+del _seq, _status, _voided, _ACCEPT_STATUS_CYCLE
